@@ -28,7 +28,10 @@ namespace SGCAv1
             //enable cors
             services.AddCors(c =>
             {
-                c.AddPolicy("AllowOrigin", options => options.AllowAnyOrigin().AllowAnyMethod()
+                c.AddPolicy("AllowOrigin", options => options
+                //.WithOrigins("http://localhost:4200")
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
                 .AllowAnyHeader());
             }) ;
 
@@ -52,6 +55,8 @@ namespace SGCAv1
                 app.UseDeveloperExceptionPage();
             }
 
+            //app.UseHttpsRedirection();
+            //app.UseCors("AllowOrigin");
             app.UseRouting();
 
             app.UseAuthorization();
