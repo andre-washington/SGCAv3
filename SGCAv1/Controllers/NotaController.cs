@@ -10,6 +10,8 @@ using System.Data;
 using SGCAv1.Models;
 //using System.IO;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.SignalR;
+using SGCAv1.HubConfig;
 
 namespace SGCAv1.Controllers
 {
@@ -19,11 +21,12 @@ namespace SGCAv1.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly IWebHostEnvironment _env;
-
-        public NotaController(IConfiguration configuration, IWebHostEnvironment env)
+        private IHubContext<SgcaHub> _hub;
+        public NotaController(IConfiguration configuration, IWebHostEnvironment env,  IHubContext<SgcaHub> hub)
         {
             _configuration = configuration;
             _env = env;
+            _hub = hub;
         }
 
         //api method to get the entity details
@@ -49,10 +52,10 @@ namespace SGCAv1.Controllers
         }
 
         [HttpPost]
-        public JsonResult Post(Nota Nota)
+        public JsonResult Post(Nota nota)
         {
-            string query = @"insert into dbo.Nota (NotaQuantidade, NotaValor, CaixaId) values (" + Nota.NotaQuantidade
-                + @", " + Nota.NotaValor + @", "+ Nota.CaixaID + @")";
+            string query = @"insert into dbo.Nota (NotaQuantidade, NotaValor, CaixaId) values (" + nota.NotaQuantidade
+                + @", " + nota.NotaValor + @", "+ nota.CaixaID + @")";
             DataTable table = new DataTable();
             string sqlDataSource = _configuration.GetConnectionString("SGCACon");
             SqlDataReader myReader;
@@ -67,16 +70,18 @@ namespace SGCAv1.Controllers
                     myCon.Close();
                 }
             }
+            SGCAController sgca = new SGCAController(_configuration);
+            _hub.Clients.All.SendAsync("transfercaixadata", sgca.GetSignalStatus());
             return new JsonResult("added successfully");
         }
 
         [HttpPut]
-        public JsonResult Put(Nota Nota)
+        public JsonResult Put(Nota nota)
         {
-            string query = @"update dbo.Nota set NotaQuantidade = " + Nota.NotaQuantidade +
-                @", NotaValor = " + Nota.NotaValor +
-                @", CaixaID = "+ Nota.CaixaID +
-                @" where Notaid = " + Nota.NotaID;
+            string query = @"update dbo.Nota set NotaQuantidade = " + nota.NotaQuantidade +
+                @", NotaValor = " + nota.NotaValor +
+                @", CaixaID = "+ nota.CaixaID +
+                @" where Notaid = " + nota.NotaID;
             DataTable table = new DataTable();
             string sqlDataSource = _configuration.GetConnectionString("SGCACon");
             SqlDataReader myReader;
@@ -91,6 +96,8 @@ namespace SGCAv1.Controllers
                     myCon.Close();
                 }
             }
+            SGCAController sgca = new SGCAController(_configuration);
+            _hub.Clients.All.SendAsync("transfercaixadata", sgca.GetSignalStatus());
             return new JsonResult("Updated successfully");
         }
 

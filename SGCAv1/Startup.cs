@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Serialization;
+using SGCAv1.HubConfig;
 
 namespace SGCAv1
 {
@@ -42,28 +43,38 @@ namespace SGCAv1
                 .Json.ReferenceLoopHandling.Ignore)
                 .AddNewtonsoftJson(options => options.SerializerSettings.ContractResolver 
                 = new DefaultContractResolver());
+
+            services.AddTransient<SgcaHub>();
+            services.AddSignalR(e => {
+                e.MaximumReceiveMessageSize = 102400000;
+                e.EnableDetailedErrors = true;
+            });
             services.AddControllers();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+            //app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
-            //app.UseHttpsRedirection();
-            //app.UseCors("AllowOrigin");
+            app.UseHttpsRedirection();
+            
             app.UseRouting();
+
+            app.UseCors("AllowOrigin");
 
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<SgcaHub>("/signalr");
+
             });
         }
     }

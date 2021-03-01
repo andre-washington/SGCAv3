@@ -13,6 +13,9 @@ export class SharedService {
   getCaixaStatus():Observable<any[]>{
     return this.http.get<any>(this.APIUrl+'/caixa/getstatus');
   }
+  getCaixaSignalStatus():Observable<any[]>{
+    return this.http.get<any>(this.APIUrl+'/sgca/getsignalstatus');
+  }
   getStatus():Observable<any[]>{
     return this.http.get<any>(this.APIUrl+'/getstatus');
   }

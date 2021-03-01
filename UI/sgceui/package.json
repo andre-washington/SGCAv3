@@ -1,4 +1,6 @@
 {
+  "build": "node --max_old_space_size=8192 node_modules/@angular/cli/bin/ng build --prod",
+
   "name": "sgceui",
   "version": "0.0.0",
   "scripts": {

@@ -8,6 +8,8 @@ using Microsoft.Extensions.Configuration;
 using System.Data.SqlClient;
 using System.Data;
 using SGCAv1.Models;
+using SGCAv1.HubConfig;
+using Microsoft.AspNetCore.SignalR;
 
 namespace SGCAv1.Controllers
 {
@@ -16,10 +18,13 @@ namespace SGCAv1.Controllers
     public class CaixaController : ControllerBase
     {
         private readonly IConfiguration _configuration;
+        private IHubContext<SgcaHub> _hub;
 
-        public CaixaController(IConfiguration configuration)
+
+        public CaixaController(IConfiguration configuration, IHubContext<SgcaHub> hub)
         {
             _configuration = configuration;
+            _hub = hub;
         }
 
         //api method to get the entity details
@@ -63,6 +68,11 @@ namespace SGCAv1.Controllers
                     myCon.Close();
                 }
             }
+            SGCAController sgca = new SGCAController(_configuration);
+            _hub.Clients.All.SendAsync("transfercaixadata", sgca.GetSignalStatus());
+            
+            //JsonResult signalStatus = GetSignalStatus();
+            //_hub.Clients.All.SendAsync("transfercaixadata", signalStatus);
             return new JsonResult("added successfully");
         }
 
@@ -85,6 +95,8 @@ namespace SGCAv1.Controllers
                     myCon.Close();
                 }
             }
+            SGCAController sgca = new SGCAController(_configuration);
+            _hub.Clients.All.SendAsync("transfercaixadata", sgca.GetSignalStatus());
             return new JsonResult("Updated successfully");
         }
 
@@ -134,7 +146,7 @@ namespace SGCAv1.Controllers
             return new JsonResult(table );
         }
         [Route("GetStatus")]
-        //[HttpGet("{id}")]
+        
         public JsonResult GetStatus()
         {
             string query = @"select c.CaixaId, c.CaixaQtdCritica, c.CaixaSituacao,
@@ -155,7 +167,11 @@ namespace SGCAv1.Controllers
                     myCon.Close();
                 }
             }
+            
             return new JsonResult(table);
         }
+
+
+        
     }
 }
