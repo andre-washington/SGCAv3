@@ -24,7 +24,7 @@ export class AppComponent implements OnInit {
   }
 
   onNavigate(){
-    window.open("caixa", "_blank"); //modificar
+    window.open("saque", "_blank"); //modificar
 }
   title = 'sgceui';
 }

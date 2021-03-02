@@ -24,15 +24,15 @@ export class ShowCaixaComponent implements OnInit {
 
 //async operation
   refreshCaixaStatusList(){
-    this.service.getCaixaStatus().subscribe(
-      data => {
-      this.CaixaStatusList=data; //aqui vem do get
-    });
+    // this.service.getCaixaStatus().subscribe(
+    //   data => {
+    //   this.CaixaStatusList=data; //aqui vem do get
+    // });
 
     this.service.getCaixaSignalStatus().subscribe(
       data => {
        //aqui vem do get
-      this.signalRService.CaixaSignalList= data;
+      this.signalRService.CaixaSignalList = data;
     });
   }
 

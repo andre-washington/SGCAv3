@@ -1,0 +1,13 @@
+<p>saque works!</p>
+
+<h4>mat-select</h4>
+  <mat-form-field appearance="fill">
+    <mat-label>Selecione o Caixa</mat-label>
+    <mat-select [(ngModel)]="selectedValue" name="caixa">
+      <mat-option *ngFor="let caixa of this.CaixaAtivoList" [value]="caixa.CaixaId">
+        {{caixa.CaixaId}}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <p> Selected food: {{selectedValue}} </p>
+  

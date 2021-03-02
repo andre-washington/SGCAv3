@@ -145,7 +145,8 @@ namespace SGCAv1.Controllers
             }
             return new JsonResult(table );
         }
-        [Route("GetStatus")]
+        
+        [Route("getstatus")]
         
         public JsonResult GetStatus()
         {
@@ -171,7 +172,32 @@ namespace SGCAv1.Controllers
             return new JsonResult(table);
         }
 
+        [Route("saque")]
+        public JsonResult Saque() {
+            return new JsonResult("saque");
+        }
 
-        
+        [Route("getcaixaativo")]
+        public JsonResult getCaixaAtivo()
+        {
+            string query = @"select CaixaId from dbo.Caixa where CaixaSituacao like '%ok%' ";
+            DataTable table = new DataTable();
+            string sqlDataSource = _configuration.GetConnectionString("SGCACon");
+            SqlDataReader myReader;
+            using (SqlConnection myCon = new SqlConnection(sqlDataSource))
+            {
+                myCon.Open();
+                using (SqlCommand myCommand = new SqlCommand(query, myCon))
+                {
+                    myReader = myCommand.ExecuteReader();
+                    table.Load(myReader);
+                    myReader.Close();
+                    myCon.Close();
+                }
+            }
+            return new JsonResult(table);
+            
+        }
+
     }
 }

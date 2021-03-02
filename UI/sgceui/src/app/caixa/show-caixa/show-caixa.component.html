@@ -1,17 +1,14 @@
 
 
 <div class="container">
-    <div>
-        <!-- {{this.signalRService.CaixaSignalList[1][1].CaixaSituacao}} -->
-        <!-- {{this.CaixaStatusList}} -->
-    </div>
+  
     <table class="table">
         <thead><tr>
-            <th scope="col">Caixa ID</th>
+            <!-- <th scope="col">Caixa ID</th>
             <th scope="col">Quantidade Crítica</th>
             <th scope="col">Situação</th>
             <th scope="col">Valor da Nota</th>
-            <th scope="col">Quantidade de Notas Disponíveis</th>
+            <th scope="col">Quantidade de Notas Disponíveis</th> -->
         </tr>
         </thead>
         <tbody>
@@ -19,10 +16,14 @@
                 <ng-container *ngFor="let dataItem of this.signalRService.CaixaSignalList">
                     <ng-container *ngIf="dataItem">
                         <th class="left"> Caixa {{dataItem[0].CaixaId}}</th>
+                        <th class="left"> Quantidade Crítica {{dataItem[0].CaixaQtdCritica}}</th>
+                        <th class="left"> Situação {{dataItem[0].CaixaSituacao}}</th>
+                        <th scope="col">Valor da Nota</th>
+                        <th scope="col">Quantidade de Notas Disponíveis</th>
                             <tr *ngFor="let dataItemInfo of dataItem">
                                 <td></td>
-                                <td> {{dataItemInfo.CaixaQtdCritica}}</td>
-                                <td> {{dataItemInfo.CaixaSituacao}}</td>
+                                <td> </td>
+                                <td> </td>
                                 <td> {{dataItemInfo.NotaValor}}</td>
                                 <td> {{dataItemInfo.NotaQuantidade}}</td>
                           </tr>

@@ -16,6 +16,10 @@ export class SharedService {
   getCaixaSignalStatus():Observable<any[]>{
     return this.http.get<any>(this.APIUrl+'/sgca/getsignalstatus');
   }
+  getCaixaAtivo():Observable<any[]>{
+    return this.http.get<any>(this.APIUrl+'/caixa/getcaixaativo');
+  }
+  
   getStatus():Observable<any[]>{
     return this.http.get<any>(this.APIUrl+'/getstatus');
   }
@@ -30,5 +34,9 @@ export class SharedService {
   
   deleteCaixa(val:any){
     return this.http.delete(this.APIUrl+'/Caixa'+val); 
+  }
+
+  saqueCaixa(val:any){
+    return this.http.put(this.APIUrl+'/caixa/saque',val); 
   }
 }
