@@ -10,6 +10,8 @@ namespace SGCAv1.Models
         public int CaixaID { get; set; }
         public int CaixaQtdCritica { get; set; }
         public String CaixaSituacao { get; set; }
+
+        public int valorSaque { get; set; }
         //public ICollection<Nota> Nota{ get; set; }
     }
 }

@@ -39,18 +39,7 @@ namespace SGCAv1.Controllers
                 myReader.Close();
                 myCon.Close();
             }
-            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
-            Dictionary<string, object> row;
-
-            foreach (DataRow dr in table.Rows)
-            {
-                row = new Dictionary<string, object>();
-                foreach (DataColumn col in table.Columns)
-                {
-                    row.Add(col.ColumnName, dr[col]);
-                }
-                rows.Add(row);
-            }
+            
             List<Dictionary<string, object>> caixas;
             List<List<Dictionary<string, object>>> lista = new List<List<Dictionary<string, object>>>();
             Dictionary<string, object> info;
@@ -59,31 +48,20 @@ namespace SGCAv1.Controllers
 
             foreach (var group in caixaIds)
             {
-                
                 caixas =  new List<Dictionary<string, object>>();
-                //Console.WriteLine("Caixa ID: {0}", group.Key);
-                //Console.WriteLine("CaixaQtdCritica   CaixaSituacao  NotaQuantidade  NotaValor");
-                //int rowNum = 0;
+                
                 foreach (DataRow rr in group)
                 {
                     info = new Dictionary<string, object>();
                     info.Add("CaixaId", rr.Field <int>( "CaixaId"));
                     info.Add("CaixaQtdCritica", rr.Field<int>("CaixaQtdCritica"));
                     info.Add("CaixaSituacao", rr.Field<string>("CaixaSituacao"));
-                    info.Add("NotaQuantidade", rr.Field<int>("NotaQuantidade"));
-                    info.Add("NotaValor", rr.Field<int>("NotaValor"));
-                    //Console.WriteLine("{0}- {1}   {2} {3} {4}", ++rowNum, rr.Field<int>("CaixaQtdCritica")
-                    //    , rr.Field<string>("CaixaSituacao")
-                    //    , rr.Field<int>("NotaQuantidade")
-                    //    , rr.Field<int>("NotaValor"));
+                    info.Add("NotaQuantidade", rr.Field<int?>("NotaQuantidade") !=null? rr.Field<int>("NotaQuantidade") : 0);
+                    info.Add("NotaValor", rr.Field<int?>("NotaValor")!= null? rr.Field<int>("NotaValor") : 0);
                     caixas.Add(info);
                 }
-                lista.Add( caixas);
-                
+                lista.Add( caixas);   
             }
-
-
-
             return new JsonResult(lista);
         }
     }

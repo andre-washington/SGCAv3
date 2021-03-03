@@ -11,5 +11,6 @@ namespace SGCAv1.Models
         public int NotaQuantidade { get; set; }
         public int NotaValor { get; set; }
         public int CaixaID { get; set; }
+                
     }
 }
