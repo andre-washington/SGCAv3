@@ -5,12 +5,9 @@ using System.Threading.Tasks;
 
 namespace SGCAv1.Models
 {
-    public class Caixa
+    public class CaixaSaque
     {
-        public int CaixaID { get; set; }
-        public int CaixaQtdCritica { get; set; }
-        public String CaixaSituacao { get; set; }
-
+        public Caixa Caixa { get; set; }
         public int valorSaque { get; set; }
         //public ICollection<Nota> Nota{ get; set; }
     }

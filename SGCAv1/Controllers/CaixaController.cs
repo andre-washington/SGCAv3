@@ -19,6 +19,7 @@ namespace SGCAv1.Controllers
     {
         private readonly IConfiguration _configuration;
         private IHubContext<SgcaHub> _hub;
+        SgcaContext db = new SgcaContext();
         public CaixaController(IConfiguration configuration, IHubContext<SgcaHub> hub)
         {
             _configuration = configuration;
@@ -29,9 +30,10 @@ namespace SGCAv1.Controllers
         [HttpGet]
         public JsonResult Get()
         {
+            IEnumerable<Caixa> lista = from p in db.Caixas select p;
             string query = @"select CaixaId, CaixaQtdCritica, CaixaSituacao from dbo.Caixa";
             DataTable table = getDataTable(query);
-            return new JsonResult(table);
+            return new JsonResult(lista);
         }
 
         [HttpPost]
@@ -65,7 +67,7 @@ namespace SGCAv1.Controllers
         public JsonResult Put(Caixa caixa)
         {
             string query = @"update dbo.Caixa set CaixaQtdCritica = " + caixa.CaixaQtdCritica +
-                @", CaixaSituacao = '" + caixa.CaixaSituacao + @"' where Caixaid = " + caixa.CaixaID;
+                @", CaixaSituacao = '" + caixa.CaixaSituacao + @"' where Caixaid = " + caixa.CaixaId;
             DataTable table = getDataTable(query);
 
             SGCAController sgca = new SGCAController(_configuration);
@@ -103,8 +105,9 @@ namespace SGCAv1.Controllers
             n.NotaQuantidade, n.NotaValor
             from dbo.Caixa c
                 join dbo.Nota n on n.CaixaId = c.CaixaId where c.CaixaId = " + id;
+            IEnumerable<Caixa> lista = from p in db.Caixas select p;
             DataTable table = getDataTable(query);
-            return new JsonResult(table );
+            return new JsonResult(lista);
         }
         
         [Route("getstatus")]
@@ -121,19 +124,19 @@ namespace SGCAv1.Controllers
         }
 
         [Route("saque")]
-        public JsonResult saque(Caixa caixa) {
-            if (caixa.valorSaque < 0 || caixa.valorSaque > 10000)
+        public JsonResult saque(CaixaSaque caixasaque) {
+            if (caixasaque.valorSaque < 0 || caixasaque.valorSaque > 10000)
                 return new JsonResult(" Não permitido.");
-            if (getSaldoSuficiente(caixa) < 0)
+            if (getSaldoSuficiente(caixasaque) < 0)
                 return new JsonResult("Não há saldo suficiente");
 
-            List<Nota> totalNotas = sacaNotas(caixa);
+            List<Nota> totalNotas = sacaNotas(caixasaque);
             atualizaNotas(totalNotas);
 
             DataTable table = getDataTable(@"select CaixaId from dbo.Caixa where CaixaSituacao like '%ok%' ");
                         
             table = getDataTable(@"select n.NotaQuantidade as quantidade from nota n where caixaId ="+
-                caixa.CaixaID + @" and n.NotaValor = 2");
+                caixasaque.Caixa.CaixaId + @" and n.NotaValor = 2");
 
             //calcNotas(caixa.valorSaque); 
 
@@ -147,7 +150,7 @@ namespace SGCAv1.Controllers
             throw new NotImplementedException();
         }
 
-        private List<Nota> sacaNotas(Caixa caixa)
+        private List<Nota> sacaNotas(CaixaSaque caixa)
         {
             int valor = caixa.valorSaque;
             int[] notas = { 2, 5, 10, 20, 50};
@@ -175,11 +178,11 @@ namespace SGCAv1.Controllers
             return totalNotas;
         }
 
-        private int getSaldoSuficiente(Caixa caixa)
+        private int getSaldoSuficiente(CaixaSaque caixa)
         {
             DataTable table = getDataTable(@"select sum(n.NotaValor* n.NotaQuantidade) as montante 
                     from nota n where n.CaixaId =" +
-                    caixa.CaixaID );
+                    caixa.Caixa.CaixaId );
             int saldo = table.Rows[0].Field<int?>("montante") !=null? 
                 table.Rows[0].Field<int>("montante") - caixa.valorSaque
                 : -1 ;
