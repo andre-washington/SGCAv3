@@ -10,6 +10,7 @@ using System.Data;
 using SGCAv1.Models;
 using SGCAv1.HubConfig;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.Hosting;
 
 namespace SGCAv1.Controllers
 {
@@ -18,11 +19,13 @@ namespace SGCAv1.Controllers
     public class CaixaController : ControllerBase
     {
         private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _env;
         private IHubContext<SgcaHub> _hub;
         SgcaContext db = new SgcaContext();
-        public CaixaController(IConfiguration configuration, IHubContext<SgcaHub> hub)
+        public CaixaController(IConfiguration configuration, IHubContext<SgcaHub> hub, IWebHostEnvironment env)
         {
             _configuration = configuration;
+            _env = env;
             _hub = hub;
         }
 
@@ -31,34 +34,18 @@ namespace SGCAv1.Controllers
         public JsonResult Get()
         {
             IEnumerable<Caixa> lista = from p in db.Caixas select p;
-            string query = @"select CaixaId, CaixaQtdCritica, CaixaSituacao from dbo.Caixa";
-            DataTable table = getDataTable(query);
+
             return new JsonResult(lista);
         }
 
         [HttpPost]
         public JsonResult Post(Caixa caixa)
         {
-            string query = @"insert into dbo.Caixa (CaixaQtdCritica, CaixaSituacao) values (" + caixa.CaixaQtdCritica
-                + @",'" + caixa.CaixaSituacao + @"')";
-            DataTable table = new DataTable();
-            string sqlDataSource = _configuration.GetConnectionString("SGCACon");
-            SqlDataReader myReader;
-            using (SqlConnection myCon = new SqlConnection(sqlDataSource))
-            {
-                myCon.Open();
-                using (SqlCommand myCommand = new SqlCommand(query, myCon))
-                {
-                    myReader = myCommand.ExecuteReader();
-                    table.Load(myReader);
-                    myReader.Close();
-                    myCon.Close();
-                }
-            }
-            
-           SGCAController sgca = new SGCAController(_configuration);
+            db.Caixas.Add(caixa);
+            db.SaveChanges();
+                        
+            SGCAController sgca = new SGCAController(_configuration);
             _hub.Clients.All.SendAsync("transfercaixadata", sgca.GetSignalStatus());
-            
             
             return new JsonResult("added successfully");
         }
@@ -66,9 +53,13 @@ namespace SGCAv1.Controllers
         [HttpPut]
         public JsonResult Put(Caixa caixa)
         {
-            string query = @"update dbo.Caixa set CaixaQtdCritica = " + caixa.CaixaQtdCritica +
-                @", CaixaSituacao = '" + caixa.CaixaSituacao + @"' where Caixaid = " + caixa.CaixaId;
-            DataTable table = getDataTable(query);
+            var existingCaixa = db.Caixas.Where(x => x.CaixaId == caixa.CaixaId).FirstOrDefault();
+                if (existingCaixa != null)
+                {
+                    existingCaixa.CaixaQtdCritica = caixa.CaixaQtdCritica;
+                    existingCaixa.CaixaSituacao = caixa.CaixaSituacao;
+                    db.SaveChanges();
+                }            
 
             SGCAController sgca = new SGCAController(_configuration);
             _hub.Clients.All.SendAsync("transfercaixadata", sgca.GetSignalStatus());
@@ -79,21 +70,8 @@ namespace SGCAv1.Controllers
         [HttpDelete("{id}")]
         public JsonResult Delete(int id)
         {
-            string query = @"delete from dbo.Caixa where CaixaId = " + id;
-            DataTable table = new DataTable();
-            string sqlDataSource = _configuration.GetConnectionString("SGCACon");
-            SqlDataReader myReader;
-            using (SqlConnection myCon = new SqlConnection(sqlDataSource))
-            {
-                myCon.Open();
-                using (SqlCommand myCommand = new SqlCommand(query, myCon))
-                {
-                    myReader = myCommand.ExecuteReader();
-                    table.Load(myReader);
-                    myReader.Close();
-                    myCon.Close();
-                }
-            }
+            db.Entry(new Caixa { CaixaId = id }).State = Microsoft.EntityFrameworkCore.EntityState.Deleted;
+            db.SaveChanges();
             return new JsonResult("Deleted successfully");
         }
         
@@ -101,26 +79,44 @@ namespace SGCAv1.Controllers
         //[HttpGet("{id}")]
         public JsonResult GetStatus(int id)
         {
-            string query = @"select c.CaixaId, c.CaixaQtdCritica, c.CaixaSituacao,
-            n.NotaQuantidade, n.NotaValor
-            from dbo.Caixa c
-                join dbo.Nota n on n.CaixaId = c.CaixaId where c.CaixaId = " + id;
-            IEnumerable<Caixa> lista = from p in db.Caixas select p;
-            DataTable table = getDataTable(query);
-            return new JsonResult(lista);
+            var data = db.Caixas.Join(
+                db.Nota,
+                caixa => caixa.CaixaId,
+                nota => nota.CaixaId,
+                (caixa, nota) => new
+                {
+                    CaixaId = caixa.CaixaId,
+                    NotaId = nota.NotaId,
+                    CaixaQtdCritica = caixa.CaixaQtdCritica,
+                    CaixaSituacao = caixa.CaixaSituacao,
+                    NotaQuantidade = nota.NotaQuantidade,
+                    NotaValor = nota.NotaValor
+                }
+                ).Where(a => a.CaixaId == id);
+           
+            return new JsonResult(data);
         }
         
         [Route("getstatus")]
         
         public JsonResult GetStatus()
         {
-            string query = @"select c.CaixaId, c.CaixaQtdCritica, c.CaixaSituacao,
-            n.NotaQuantidade, n.NotaValor
-            from dbo.Caixa c
-                left join dbo.Nota n on n.CaixaId = c.CaixaId ";
-            DataTable table = getDataTable(query);
+            var data = db.Caixas.Join(
+                db.Nota,
+                caixa => caixa.CaixaId,
+                nota => nota.CaixaId,
+                (caixa, nota) => new
+                {
+                    CaixaId = caixa.CaixaId,
+                    NotaId = nota.NotaId,
+                    CaixaQtdCritica = caixa.CaixaQtdCritica,
+                    CaixaSituacao = caixa.CaixaSituacao,
+                    NotaQuantidade = nota.NotaQuantidade,
+                    NotaValor = nota.NotaValor
+                }
+                );
 
-            return new JsonResult(table);
+            return new JsonResult(data);
         }
 
         [Route("saque")]
@@ -130,16 +126,15 @@ namespace SGCAv1.Controllers
             if (getSaldoSuficiente(caixasaque) < 0)
                 return new JsonResult("Não há saldo suficiente");
 
-            List<Nota> totalNotas = sacaNotas(caixasaque);
-            atualizaNotas(totalNotas);
+            List<Nota> totalNotas = sacaNotas(caixasaque); 
+            atualizaNotas(totalNotas); //fazer
 
-            DataTable table = getDataTable(@"select CaixaId from dbo.Caixa where CaixaSituacao like '%ok%' ");
+            //DataTable table = getDataTable(@"select CaixaId from dbo.Caixa where CaixaSituacao like '%ok%' ");
                         
-            table = getDataTable(@"select n.NotaQuantidade as quantidade from nota n where caixaId ="+
-                caixasaque.Caixa.CaixaId + @" and n.NotaValor = 2");
+            //table = getDataTable(@"select n.NotaQuantidade as quantidade from nota n where caixaId ="+
+                //caixasaque.Caixa.CaixaId + @" and n.NotaValor = 2");
 
             //calcNotas(caixa.valorSaque); 
-
 
             _hub.Clients.All.SendAsync("caixaativoevent", this.getCaixaAtivo());
             return new JsonResult(totalNotas);
@@ -163,7 +158,7 @@ namespace SGCAv1.Controllers
             }
             Nota n;
             i--;
-            while ( i>=0)
+            while ( i>=0 )
             {
                 n = new Nota();
                 n.NotaValor = notas[i];
@@ -180,23 +175,17 @@ namespace SGCAv1.Controllers
 
         private int getSaldoSuficiente(CaixaSaque caixa)
         {
-            DataTable table = getDataTable(@"select sum(n.NotaValor* n.NotaQuantidade) as montante 
-                    from nota n where n.CaixaId =" +
-                    caixa.Caixa.CaixaId );
-            int saldo = table.Rows[0].Field<int?>("montante") !=null? 
-                table.Rows[0].Field<int>("montante") - caixa.valorSaque
-                : -1 ;
-            
+            var result = db.Nota.Where(t => t.CaixaId == caixa.Caixa.CaixaId).Sum(i => (i.NotaQuantidade * i.NotaValor));
+            int saldo = result != null ? result - caixa.valorSaque : -1;
             return saldo;
         }
 
         [Route("getcaixaativo")]
         public JsonResult getCaixaAtivo()
         {
-            string query = @"select CaixaId from dbo.Caixa where CaixaSituacao like '%ok%' ";
-            DataTable table = getDataTable(query);
+            IEnumerable<Caixa> lista = from p in db.Caixas where p.CaixaSituacao.Equals("Ativo") select p ;
 
-            return new JsonResult(table);
+            return new JsonResult(lista);
             
         }
 

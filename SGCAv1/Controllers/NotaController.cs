@@ -22,6 +22,7 @@ namespace SGCAv1.Controllers
         private readonly IConfiguration _configuration;
         private readonly IWebHostEnvironment _env;
         private IHubContext<SgcaHub> _hub;
+        SgcaContext db = new SgcaContext();
         public NotaController(IConfiguration configuration, IWebHostEnvironment env,  IHubContext<SgcaHub> hub)
         {
             _configuration = configuration;
@@ -33,92 +34,45 @@ namespace SGCAv1.Controllers
         [HttpGet]
         public JsonResult Get()
         {
-            string query = @"select NotaId, NotaQuantidade, NotaValor, CaixaId from dbo.Nota";
-            DataTable table = new DataTable();
-            string sqlDataSource = _configuration.GetConnectionString("SGCACon");
-            SqlDataReader myReader;
-            using (SqlConnection myCon = new SqlConnection(sqlDataSource))
-            {
-                myCon.Open();
-                using (SqlCommand myCommand = new SqlCommand(query, myCon))
-                {
-                    myReader = myCommand.ExecuteReader();
-                    table.Load(myReader);
-                    myReader.Close();
-                    myCon.Close();
-                }
-            }
-            return new JsonResult(table);
+            IEnumerable<Notum> lista = from p in db.Nota select p;
+
+            return new JsonResult(lista);
         }
 
         [HttpPost]
-        public JsonResult Post(Nota nota)
+        public JsonResult Post(Notum nota)
         {
-            string query = @"insert into dbo.Nota (NotaQuantidade, NotaValor, CaixaId) values (" + nota.NotaQuantidade
-                + @", " + nota.NotaValor + @", "+ nota.CaixaID + @")";
-            DataTable table = new DataTable();
-            string sqlDataSource = _configuration.GetConnectionString("SGCACon");
-            SqlDataReader myReader;
-            using (SqlConnection myCon = new SqlConnection(sqlDataSource))
-            {
-                myCon.Open();
-                using (SqlCommand myCommand = new SqlCommand(query, myCon))
-                {
-                    myReader = myCommand.ExecuteReader();
-                    table.Load(myReader);
-                    myReader.Close();
-                    myCon.Close();
-                }
-            }
+            db.Nota.Add(nota);
+            db.SaveChanges();
+
             SGCAController sgca = new SGCAController(_configuration);
             _hub.Clients.All.SendAsync("transfercaixadata", sgca.GetSignalStatus());
             return new JsonResult("added successfully");
         }
 
         [HttpPut]
-        public JsonResult Put(Nota nota)
+        public JsonResult Put(Notum nota)
         {
-            string query = @"update dbo.Nota set NotaQuantidade = " + nota.NotaQuantidade +
-                @", NotaValor = " + nota.NotaValor +
-                @", CaixaID = "+ nota.CaixaID +
-                @" where Notaid = " + nota.NotaID;
-            DataTable table = new DataTable();
-            string sqlDataSource = _configuration.GetConnectionString("SGCACon");
-            SqlDataReader myReader;
-            using (SqlConnection myCon = new SqlConnection(sqlDataSource))
+           var existingNota = db.Nota.Where(x => x.NotaId == nota.NotaId).FirstOrDefault();
+            if (existingNota != null)
             {
-                myCon.Open();
-                using (SqlCommand myCommand = new SqlCommand(query, myCon))
-                {
-                    myReader = myCommand.ExecuteReader();
-                    table.Load(myReader);
-                    myReader.Close();
-                    myCon.Close();
-                }
+                existingNota.NotaQuantidade = nota.NotaQuantidade;
+                existingNota.NotaValor = nota.NotaValor;
+                //existingNota.CaixaID = nota.CaixaID;
+                db.SaveChanges();
             }
+
             SGCAController sgca = new SGCAController(_configuration);
             _hub.Clients.All.SendAsync("transfercaixadata", sgca.GetSignalStatus());
+            
             return new JsonResult("Updated successfully");
         }
 
         [HttpDelete("{id}")]
         public JsonResult Delete(int id)
         {
-            string query = @"delete from dbo.Nota where NotaId = " + id;
-            DataTable table = new DataTable();
-            string sqlDataSource = _configuration.GetConnectionString("SGCACon");
-            SqlDataReader myReader;
-            using (SqlConnection myCon = new SqlConnection(sqlDataSource))
-            {
-                myCon.Open();
-                using (SqlCommand myCommand = new SqlCommand(query, myCon))
-                {
-                    myReader = myCommand.ExecuteReader();
-                    table.Load(myReader);
-                    myReader.Close();
-                    myCon.Close();
-                }
-            }
+            db.Entry(new Notum { NotaId = id }).State =  Microsoft.EntityFrameworkCore.EntityState.Deleted;
+            db.SaveChanges();
             return new JsonResult("Deleted successfully");
         }
     }
