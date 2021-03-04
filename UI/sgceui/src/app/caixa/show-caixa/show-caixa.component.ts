@@ -17,6 +17,7 @@ export class ShowCaixaComponent implements OnInit {
   ngOnInit(): void {
     this.signalRService.startConnection();
     this.signalRService.addTransferChartDataListener();  //captura o evento 
+    this.signalRService.addSaqueStatusListener(); 
     this.CaixaStatusList = this.signalRService.CaixaSignalList;
     this.refreshCaixaStatusList();
     

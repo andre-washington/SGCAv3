@@ -10,6 +10,7 @@ import { SharedService} from 'src/app/shared.service';
 })
 export class SignalRService {
   public  CaixaSignalList: any[]=[];
+  public  SaqueSignalStatus: any[]=[];
   constructor(private http:HttpClient, private service:SharedService) { }
 
   private hubConnection: signalR.HubConnection;
@@ -35,6 +36,14 @@ export class SignalRService {
       console.log(data.value); //este exibe
     } );
   }
+  public addSaqueStatusListener = () => {
+    this.hubConnection.on('caixaativoevent', (data) => {
+      this.SaqueSignalStatus = data.value; //resultado do hub
+      
+      this.startHttpRequest();
+      console.log(data.value); //este exibe
+    } );
+  }
   private startHttpRequest = () => {
     this.http.get('http://localhost:5000/api/caixa')
       .subscribe(res => {
@@ -42,9 +51,6 @@ export class SignalRService {
           data => {
           this.CaixaSignalList=data; //aqui vem do get
         });
-
-        // this.CaixaSignalList = res;
-        //  console.log(res); //este tb exibe
       })
   }
 }

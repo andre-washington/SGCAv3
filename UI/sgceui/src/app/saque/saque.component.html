@@ -1,13 +1,26 @@
-<p>saque works!</p>
-
-<h4>mat-select</h4>
+<div class="card-container">
+  <div layout="row" layout-fill layout-align="center center">
+<h3>
+  Realizar Saque
+</h3>
   <mat-form-field appearance="fill">
     <mat-label>Selecione o Caixa</mat-label>
-    <mat-select [(ngModel)]="selectedValue" name="caixa">
+    <mat-select [(ngModel)]="idCaixa" name="caixa">
       <mat-option *ngFor="let caixa of this.CaixaAtivoList" [value]="caixa.CaixaId">
         {{caixa.CaixaId}}
       </mat-option>
     </mat-select>
   </mat-form-field>
-  <p> Selected food: {{selectedValue}} </p>
+  <p> Caixa selecionado: {{idCaixa}} </p>
   
+  <form (ngSubmit)="onSubmit()" #lineForm="ngForm">
+    
+    <label for="name">Entre com o valor do saque:</label>
+    <input [(ngModel)]="valorSaque"  name="valorSaque" type="text" class="form-control" required> 
+    <button type="submit" class="btn btn-success">Submit</button>
+  </form>
+</div>
+<ng-container *ngIf="this.signalRService.SaqueSignalStatus">
+  {{this.signalRService.SaqueSignalStatus}}
+</ng-container> 
+</div>

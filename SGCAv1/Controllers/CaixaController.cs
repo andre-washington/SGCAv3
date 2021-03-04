@@ -121,55 +121,117 @@ namespace SGCAv1.Controllers
 
         [Route("saque")]
         public JsonResult saque(CaixaSaque caixasaque) {
+            JsonResult result ;
             if (caixasaque.valorSaque < 0 || caixasaque.valorSaque > 10000)
-                return new JsonResult(" Não permitido.");
+                return new JsonResult("Não permitido.");
             if (getSaldoSuficiente(caixasaque) < 0)
                 return new JsonResult("Não há saldo suficiente");
 
-            List<Nota> totalNotas = sacaNotas(caixasaque); 
-            atualizaNotas(totalNotas); //fazer
-
-            //DataTable table = getDataTable(@"select CaixaId from dbo.Caixa where CaixaSituacao like '%ok%' ");
-                        
-            //table = getDataTable(@"select n.NotaQuantidade as quantidade from nota n where caixaId ="+
-                //caixasaque.Caixa.CaixaId + @" and n.NotaValor = 2");
-
-            //calcNotas(caixa.valorSaque); 
-
-            _hub.Clients.All.SendAsync("caixaativoevent", this.getCaixaAtivo());
-            return new JsonResult(totalNotas);
-        }
-
-        private void atualizaNotas(List<Nota> totalNotas)
-        {
-            throw new NotImplementedException();
-        }
-
-        private List<Nota> sacaNotas(CaixaSaque caixa)
-        {
-            int valor = caixa.valorSaque;
-            int[] notas = { 2, 5, 10, 20, 50};
-            List<Nota> totalNotas = new List<Nota>();
-            int i;
-            for (i = 0; i<=4 ; i++)
+            List<Nota> totalNotas = sacaNotas(caixasaque);
+            if (totalNotas.Count() != 0)
             {
-                if (notas[i] > caixa.valorSaque )
+                result = atualizaNotas(caixasaque, totalNotas);
+                
+            }
+            else
+            {
+                result = new JsonResult("Notas insuficientes");
+                
+            }
+                
+
+
+            //result = new JsonResult("saque ok!");
+            SGCAController sgca = new SGCAController(_configuration);
+            _hub.Clients.All.SendAsync("transfercaixadata", sgca.GetSignalStatus());//sinaliza o sgca
+            //_hub.Clients.All.SendAsync("caixaativoevent", this.getCaixaAtivo());
+            _hub.Clients.All.SendAsync("caixaativoevent", result);
+
+            return new JsonResult(result);
+        }
+
+        private JsonResult atualizaNotas(CaixaSaque caixasaque, List<Nota> totalNotas)
+        {
+            var existingCaixa = db.Caixas.Where(x => x.CaixaId == caixasaque.Caixa.CaixaId).FirstOrDefault();
+            var existingNota = db.Nota.Where(x => x.CaixaId == caixasaque.Caixa.CaixaId);
+
+            var data = db.Caixas.Join(
+                db.Nota,
+                caixa => caixa.CaixaId,
+                nota => nota.CaixaId,
+                (caixa, nota) => new
+                {
+                    CaixaId = caixa.CaixaId,
+                    NotaId = nota.NotaId,
+                    CaixaQtdCritica = caixa.CaixaQtdCritica,
+                    CaixaSituacao = caixa.CaixaSituacao,
+                    NotaQuantidade = nota.NotaQuantidade,
+                    NotaValor = nota.NotaValor
+                }
+                ).Where(a => a.CaixaId == caixasaque.Caixa.CaixaId);
+
+            for (int i = 0; i < totalNotas.Count ; i++) {
+                if ( data.Where(x => x.NotaValor == totalNotas[i].NotaValor && x.NotaQuantidade >= totalNotas[i].NotaQuantidade) !=null )
+                {
+                    existingNota.Where(x => x.NotaValor == totalNotas[i].NotaValor).FirstOrDefault().NotaQuantidade -= totalNotas[i].NotaQuantidade;
+                    db.SaveChanges();
+                }
+             }
+            return new JsonResult("saque realizado com sucesso.");
+        }
+        //TODO colocar na tela as notas disponiveis . !!
+        private List<Nota> sacaNotas(CaixaSaque caixaSaque)
+        {
+            List<Nota> totalNotas = new List<Nota>();
+            Nota nota;
+            int qtdEmCaixa = 0;
+            var caixa  = db.Caixas.Where(x => x.CaixaId == caixaSaque.Caixa.CaixaId).FirstOrDefault(); 
+            int valor = caixaSaque.valorSaque;
+            int[] notasDisponiveis = db.Nota.Where(x => x.CaixaId == caixaSaque.Caixa.CaixaId && x.NotaQuantidade >0).OrderBy(x=>x.NotaValor).Select(x => x.NotaValor).ToArray<int>();
+            
+            //if (notasDisponiveis.Sum() < caixa.valorSaque)
+                //return totalNotas;
+
+            int i;
+            for (i = 0; i < notasDisponiveis.Count(); i++)
+            {
+                if (notasDisponiveis[i] > caixaSaque.valorSaque )
                     break;
             }
-            Nota n;
+            
             i--;
             while ( i>=0 )
             {
-                n = new Nota();
-                n.NotaValor = notas[i];
-                n.NotaQuantidade = valor / notas[i];
-                valor -= (n.NotaValor * n.NotaQuantidade);
-                if (n.NotaQuantidade>0)
-                    totalNotas.Add(n);
-                if (valor % notas[i]  == 0)
+                nota = new Nota();
+                nota.NotaValor = notasDisponiveis[i];
+                nota.NotaQuantidade = valor / notasDisponiveis[i];
+                qtdEmCaixa = db.Nota.Where(x => x.CaixaId == caixaSaque.Caixa.CaixaId && x.NotaValor == nota.NotaValor).FirstOrDefault().NotaQuantidade;
+
+
+                if (nota.NotaQuantidade > qtdEmCaixa || (qtdEmCaixa - nota.NotaQuantidade) < caixa.CaixaQtdCritica)
+                {
+                    i--;
+                    continue;
+                }
+
+                valor -= (nota.NotaValor * nota.NotaQuantidade);
+                if (nota.NotaQuantidade > 0)
+                {
+                    
+                    totalNotas.Add(nota);
+                }
+                    
+                if (valor % notasDisponiveis[i]  == 0)
                     break;
                 i--;
             }
+            if (valor > 0)
+            {
+                caixa.CaixaSituacao = "Inativo";
+                db.SaveChanges();
+                totalNotas.Clear();//notas disponiveis não podem fechar o valor pedido
+            }
+                
             return totalNotas;
         }
 
@@ -189,23 +251,5 @@ namespace SGCAv1.Controllers
             
         }
 
-        private DataTable getDataTable(string query)
-        {
-            DataTable table = new DataTable();
-            string sqlDataSource = _configuration.GetConnectionString("SGCACon");
-            SqlDataReader myReader;
-            using (SqlConnection myCon = new SqlConnection(sqlDataSource))
-            {
-                myCon.Open();
-                using (SqlCommand myCommand = new SqlCommand(query, myCon))
-                {
-                    myReader = myCommand.ExecuteReader();
-                    table.Load(myReader);
-                    myReader.Close();
-                    myCon.Close();
-                }
-            }
-            return table;
-        }
     }
 }

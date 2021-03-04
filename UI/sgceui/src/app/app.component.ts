@@ -14,6 +14,7 @@ export class AppComponent implements OnInit {
   ngOnInit() {
     this.signalRService.startConnection();
     this.signalRService.addTransferChartDataListener();  //captura o evento 
+    this.signalRService.addSaqueStatusListener();  //captura o evento 
     this.startHttpRequest();
     }
   private startHttpRequest = () => {
