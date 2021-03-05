@@ -174,7 +174,11 @@ namespace SGCAv1.Controllers
                 if ( data.Where(x => x.NotaValor == totalNotas[i].NotaValor && x.NotaQuantidade >= totalNotas[i].NotaQuantidade) !=null )
                 {
                     existingNota.Where(x => x.NotaValor == totalNotas[i].NotaValor).FirstOrDefault().NotaQuantidade -= totalNotas[i].NotaQuantidade;
+                    
                     db.SaveChanges();
+
+                    if (existingNota.Where(x => x.NotaValor == totalNotas[i].NotaValor).FirstOrDefault().NotaQuantidade <= caixasaque.Caixa.CaixaQtdCritica)
+                        caixasaque.Caixa.CaixaSituacao = "Inativo";
                 }
              }
             return new JsonResult("saque realizado com sucesso.");
@@ -208,7 +212,7 @@ namespace SGCAv1.Controllers
                 qtdEmCaixa = db.Nota.Where(x => x.CaixaId == caixaSaque.Caixa.CaixaId && x.NotaValor == nota.NotaValor).FirstOrDefault().NotaQuantidade;
 
 
-                if (nota.NotaQuantidade > qtdEmCaixa || (qtdEmCaixa - nota.NotaQuantidade) < caixa.CaixaQtdCritica)
+                if (nota.NotaQuantidade >= qtdEmCaixa || (qtdEmCaixa - nota.NotaQuantidade) <= caixa.CaixaQtdCritica)
                 {
                     i--;
                     continue;
@@ -227,7 +231,7 @@ namespace SGCAv1.Controllers
             }
             if (valor > 0)
             {
-                caixa.CaixaSituacao = "Inativo";
+                //caixa.CaixaSituacao = "Inativo";
                 db.SaveChanges();
                 totalNotas.Clear();//notas disponiveis não podem fechar o valor pedido
             }
