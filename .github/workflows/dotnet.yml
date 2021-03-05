@@ -1,0 +1,29 @@
+name: .NET
+
+on:
+  push:
+    branches: [ homol ]
+  pull_request:
+    branches: [ homol ]
+
+jobs:
+  build:
+    env:
+      CAMINHO_PROJETO_TESTES: ./SGCAIntegrationTest/SGCAIntegrationTest.csproj
+      CAMINHO_PROJETO_WEBAPP: ./SGCAv1
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+    - name: Build
+      run: dotnet build ${{ env.CAMINHO_PROJETO_WEBAPP }} --configuration Release 
+      
+    - name: Restore dependencies
+      run: dotnet restore  
+      
+    - name: Executar testes automatizados
+      run: dotnet test ${{ env.CAMINHO_PROJETO_TESTES }} --verbosity minimal
