@@ -1,0 +1,239 @@
+{
+	"info": {
+		"_postman_id": "6dad72ff-3cc3-4d5a-8d3f-bc83994a4918",
+		"name": "sgca",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Caixa",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/caixa",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"caixa"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getstatus caixa",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/caixa/5/getstatus",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"caixa",
+						"5",
+						"getstatus"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "post caixa",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {    \"CaixaQtdCritica\": 30,\r\n    \"CaixaSituacao\": \"Inativo\"\r\n    },\r\n    {    \"CaixaQtdCritica\": 30,\r\n    \"CaixaSituacao\": \"Inativo\"\r\n    },\r\n    {    \"CaixaQtdCritica\": 30,\r\n    \"CaixaSituacao\": \"Inativo\"\r\n    },\r\n    {    \"CaixaQtdCritica\": 30,\r\n    \"CaixaSituacao\": \"Inativo\"\r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/caixa",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"caixa"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "put caixa",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": " [{  \r\n       \"CaixaId\": 1,\r\n        \"CaixaQtdCritica\": 35,\r\n        \"CaixaSituacao\": \"Ativo\"\r\n},\r\n{\r\n    \"CaixaId\": 1,\r\n        \"CaixaQtdCritica\": 45,\r\n        \"CaixaSituacao\": \"Ativo\"\r\n}\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/caixa",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"caixa"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "saque caixa",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": " [{  \r\n       \"Caixa\": {\"CaixaId\": 1},\r\n\r\n        \"valorSaque\": 127\r\n  },\r\n  {\r\n      \"Caixa\": {\"CaixaId\": 2},\r\n\r\n        \"valorSaque\": 65\r\n\r\n  }\r\n  ]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/caixa/saque",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"caixa",
+						"saque"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Nota",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/Nota",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"Nota"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "post nota",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {       \r\n    \"CaixaId\": 1,       \r\n    \"NotaQuantidade\": 50,\r\n    \"NotaValor\": 2 \r\n    },\r\n    {       \r\n    \"CaixaId\": 1,       \r\n    \"NotaQuantidade\": 25,\r\n    \"NotaValor\": 5 \r\n    },\r\n    {       \r\n    \"CaixaId\": 1,       \r\n    \"NotaQuantidade\": 150,\r\n    \"NotaValor\": 10 \r\n    },\r\n    {       \r\n    \"CaixaId\": 1,       \r\n    \"NotaQuantidade\": 200,\r\n    \"NotaValor\": 20 \r\n    },\r\n    {       \r\n    \"CaixaId\": 1,       \r\n    \"NotaQuantidade\": 200,\r\n    \"NotaValor\": 50 \r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/Nota",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"Nota"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "del nota",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/Nota/5",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"Nota",
+						"5"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Put Nota",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": " {\r\n        \"NotaId\": 17,\r\n        \"NotaQuantidade\": 36,\r\n        \"NotaValor\": 50,\r\n        \"CaixaId\": 5\r\n    }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/Nota/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"Nota",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

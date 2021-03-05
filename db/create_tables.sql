@@ -1,0 +1,46 @@
+USE [Sgca]
+GO
+
+/****** Object:  Table [dbo].[Caixa]    Script Date: 04/03/2021 22:34:40 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[Caixa](
+	[CaixaId] [int] IDENTITY(1,1) NOT NULL,
+	[CaixaQtdCritica] [int] NOT NULL,
+	[CaixaSituacao] [varchar](20) NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[CaixaId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+
+
+USE [Sgca]
+GO
+
+/****** Object:  Table [dbo].[Nota]    Script Date: 04/03/2021 22:35:07 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[Nota](
+	[NotaId] [int] IDENTITY(1,1) NOT NULL,
+	[NotaQuantidade] [int] NOT NULL,
+	[NotaValor] [int] NOT NULL,
+	[CaixaId] [int] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[NotaId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+
